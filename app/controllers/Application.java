@@ -9,27 +9,36 @@ public class Application extends Controller {
 
     static Form<Ticket> ticketForm = form(Ticket.class);
 
+    public static final Result GO_HOME = redirect(routes.Application.list());
+
     public static Result index() {
-        // return ok(views.html.index.render("Your new application is ready."));
-        return ok(views.html.index.render(Ticket.all(), ticketForm));
+        return GO_HOME;
     }
 
-    public static Result tickets() {
-        return ok(views.html.index.render(Ticket.all(), ticketForm));
+    public static Result list() {
+        return ok(views.html.list.render(Ticket.all()));
     }
 
-    public static Result newTicket() {
+    public static Result onDoneCreate() {
+        return GO_HOME;
+    }
+
+    public static Result onShowCreateClick() {
+        return ok(views.html.edit.render(ticketForm));
+    }
+
+    public static Result onDoCreateClick() {
         Form<Ticket> filledForm = ticketForm.bindFromRequest();
         if (filledForm.hasErrors()) {
-            return badRequest(views.html.index.render(Ticket.all(), filledForm));
+            return badRequest(views.html.list.render(Ticket.all()));
         } else {
             Ticket.create(filledForm.get());
-            return redirect(routes.Application.tickets());
+            return redirect(routes.Application.list());
         }
     }
 
-    public static Result deleteTicket(Long id) {
+    public static Result onDoDeleteClick(Long id) {
         Ticket.delete(id);
-        return redirect(routes.Application.tickets());
+        return redirect(routes.Application.list());
     }
 }

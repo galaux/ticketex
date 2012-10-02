@@ -3,12 +3,14 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index()
+GET     /                       controllers.Application.index()
 
 # Tickets
-GET     /tickets                  controllers.Application.tickets()
-POST    /tickets                  controllers.Application.newTicket()
-POST    /tickets/:id/delete       controllers.Application.deleteTicket(id: Long)
+GET     /tickets                controllers.Application.list()
+GET     /tickets/create         controllers.Application.onShowCreateClick()
+POST    /tickets/create         controllers.Application.onDoCreateClick()
+GET     /tickets/doneCreate     controllers.Application.onDoneCreate()
+POST    /tickets/:id/delete     controllers.Application.onDoDeleteClick(id: Long)
 
 GET     /assets/img/glyphicons-halflings-white.png      controllers.Assets.at(path="/public", file="/img/glyphicons-halflings-white.png")
 GET     /assets/img/glyphicons-halflings.png            controllers.Assets.at(path="/public", file="/img/glyphicons-halflings.png")

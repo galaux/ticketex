@@ -1,0 +1,17 @@
+@(ticketForm: Form[Ticket])
+
+@import helper._
+
+@main("Edit ticket") {
+
+    <h1>Add a new ticket</h1>
+
+    @form(routes.Application.onDoCreateClick()) {
+        @inputText(ticketForm("label"), '_label -> "Label")
+        @inputText(ticketForm("description"), '_label -> "Description")
+        @inputText(ticketForm("start"), '_label -> "Start date")
+        @inputText(ticketForm("end"), '_label -> "End date")
+        @inputText(ticketForm("price"), '_label -> "Price")
+        <input type="submit" value="Create">
+    }
+}

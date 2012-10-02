@@ -1,0 +1,33 @@
+@(tickets: List[Ticket])
+
+@import helper._
+
+@main("Ticket list") {
+
+    <h1>@tickets.size() ticket(s)</h1>
+
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th>#</th> <th>Label</th> <th>Date</th> <th>Description</th> <th>Price</th> <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for(ticket <- tickets) {
+        <tr>
+            <td>@ticket.id</td>
+            <td>@ticket.label</td>
+            <td>@ticket.start<br />
+                -> @ticket.end</td>
+            <td>@ticket.description</td>
+            <td>@ticket.price €</td>
+            <td>@form(routes.Application.onDoDeleteClick(ticket.id)) {
+                <input type="submit" value="Delete">
+                }</td>
+        </tr>
+        }
+        </tbody>
+    </table>
+
+    <a href="@routes.Application.onShowCreateClick()">Add one</a>
+}
