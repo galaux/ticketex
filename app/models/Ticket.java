@@ -1,52 +1,83 @@
 package models;
 
 import play.data.format.Formats;
-import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Guillaume ALAUX <guillaume at alaux dot net>
- *         Date: 10/1/12
+ *         Date: 10/3/12
  */
-@Entity
-public class Ticket extends Model {
+public class Ticket {
 
-    public static Finder<Long, Ticket> find = new Finder(Long.class, Ticket.class);
+    public UUID id;
 
-    @Id
-    public Long id;
-
-    @Required
     public String label;
 
     public String description;
 
-    @Required
-    public BigDecimal price;
+    public Long price;
 
-    @Required
-    @Formats.DateTime(pattern = "dd/MM/yyyy")
+    @Formats.DateTime(pattern="dd/MM/yyyy")
     public Date start;
 
-    @Required
-    @Formats.DateTime(pattern = "dd/MM/yyyy")
+    @Formats.DateTime(pattern="dd/MM/yyyy")
     public Date end;
 
-    public static void create(Ticket ticket) {
-        ticket.save();
+    public UUID getId() {
+        return id;
     }
 
-    public static List<Ticket> all() {
-        return find.all();
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public static void delete(Long id) {
-        find.ref(id).delete();
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Long getPrice() {
+        return price;
+    }
+
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    public Date getStart() {
+        return start;
+    }
+
+    public void setStart(Date start) {
+        this.start = start;
+    }
+
+    public Date getEnd() {
+        return end;
+    }
+
+    public void setEnd(Date end) {
+        this.end = end;
+    }
+
+    @Override
+    public String toString() {
+        return "Ticket[" + id + "]:" + "\n"
+                + "\tlabel\t\t: " + label + "\n"
+                + "\tdescription\t: " + description + "\n"
+                + "\tprice\t\t: €" + price;
     }
 }

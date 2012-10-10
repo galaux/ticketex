@@ -1,0 +1,61 @@
+create keyspace ksp_ticket_test
+  with placement_strategy = 'NetworkTopologyStrategy'
+  and strategy_options = {datacenter1 : 1}
+  and durable_writes = true;
+
+use ksp_ticket_test;
+
+create column family Ticket
+  with column_type = 'Standard'
+  and comparator = 'UTF8Type'
+  and default_validation_class = 'UTF8Type'
+  and key_validation_class = 'BytesType'
+  and read_repair_chance = 0.1
+  and dclocal_read_repair_chance = 0.0
+  and gc_grace = 864000
+  and min_compaction_threshold = 4
+  and max_compaction_threshold = 32
+  and replicate_on_write = true
+  and compaction_strategy = 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'
+  and caching = 'KEYS_ONLY'
+  and compression_options = {'sstable_compression' : 'org.apache.cassandra.io.compress.SnappyCompressor'};
+
+set Ticket[lexicaluuid(0-0-0-0-1)]['label'] = utf8('Train Paris -> Tours');
+set Ticket[lexicaluuid(0-0-0-0-1)]['description'] = utf8('TGV numero 1678 pour Tours');
+set Ticket[lexicaluuid(0-0-0-0-1)]['price'] = long(32);
+
+set Ticket[lexicaluuid(0-0-0-0-2)]['label'] = utf8('Le petit train');
+set Ticket[lexicaluuid(0-0-0-0-2)]['description'] = utf8('Petit train trop fun');
+set Ticket[lexicaluuid(0-0-0-0-2)]['price'] = long(12);
+
+set Ticket[lexicaluuid(0-0-0-0-3)]['label'] = utf8('Grand train');
+set Ticket[lexicaluuid(0-0-0-0-3)]['description'] = utf8('Va partout en France');
+set Ticket[lexicaluuid(0-0-0-0-3)]['price'] = long(50);
+
+set Ticket[lexicaluuid(0-0-0-0-4)]['label'] = utf8('Train bleu');
+set Ticket[lexicaluuid(0-0-0-0-4)]['description'] = utf8('C est trop bien ce train');
+set Ticket[lexicaluuid(0-0-0-0-4)]['price'] = long(36);
+
+set Ticket[lexicaluuid(0-0-0-0-5)]['label'] = utf8('Train cher');
+set Ticket[lexicaluuid(0-0-0-0-5)]['description'] = utf8('Il est cher mais bien');
+set Ticket[lexicaluuid(0-0-0-0-5)]['price'] = long(68);
+
+set Ticket[lexicaluuid(0-0-0-0-6)]['label'] = utf8('Train des consequences');
+set Ticket[lexicaluuid(0-0-0-0-6)]['description'] = utf8('C est un super train mais il faut le prendre en entier');
+set Ticket[lexicaluuid(0-0-0-0-6)]['price'] = long(36);
+
+set Ticket[lexicaluuid(0-0-0-0-7)]['label'] = utf8('Train rouge');
+set Ticket[lexicaluuid(0-0-0-0-7)]['description'] = utf8('Train entre Moscou et Vladivostok');
+set Ticket[lexicaluuid(0-0-0-0-7)]['price'] = long(80);
+
+set Ticket[lexicaluuid(0-0-0-0-8)]['label'] = utf8('Train train');
+set Ticket[lexicaluuid(0-0-0-0-8)]['description'] = utf8('Le train du quotidien');
+set Ticket[lexicaluuid(0-0-0-0-8)]['price'] = long(32);
+
+set Ticket[lexicaluuid(0-0-0-0-9)]['label'] = utf8('Le train vert');
+set Ticket[lexicaluuid(0-0-0-0-9)]['description'] = utf8('Train de couleur verte');
+set Ticket[lexicaluuid(0-0-0-0-9)]['price'] = long(36);
+
+set Ticket[lexicaluuid(0-0-0-0-10)]['label'] = utf8('Train pour Orléans');
+set Ticket[lexicaluuid(0-0-0-0-10)]['description'] = utf8('Train intercité pour cette ville perdue qu est Orléans');
+set Ticket[lexicaluuid(0-0-0-0-10)]['price'] = long(2);

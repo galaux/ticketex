@@ -1,4 +1,4 @@
-@(tickets: List[Ticket])
+@(tickets: List[Ticket], queryForm: Form[String])
 
 @import helper._
 
@@ -6,28 +6,42 @@
 
     <h1>@tickets.size() ticket(s)</h1>
 
+    @form(routes.Application.onSearchClick(), '_class -> "form-search") {
+        @inputText(queryForm("query"), '_label -> "Search")
+        <input type="submit" value="Search" class="btn">
+    }
+
     <table class="table table-striped table-hover">
         <thead>
         <tr>
-            <th>#</th> <th>Label</th> <th>Date</th> <th>Description</th> <th>Price</th> <th></th>
+            <th>Label</th> <th>Date</th> <th>Description</th> <th>Price</th> <th></th>
         </tr>
         </thead>
         <tbody>
         @for(ticket <- tickets) {
         <tr>
-            <td>@ticket.id</td>
+            <!--<td>@ticket.id.toString</td>-->
             <td>@ticket.label</td>
             <td>@ticket.start<br />
                 -> @ticket.end</td>
             <td>@ticket.description</td>
             <td>@ticket.price €</td>
-            <td>@form(routes.Application.onDoDeleteClick(ticket.id)) {
+            <td>@form(routes.Application.onDoDeleteClick(ticket.id.toString)) {
                 <input type="submit" value="Delete">
                 }</td>
         </tr>
         }
+
+        <div class="alert-message error">
+            @for((key, value) <- flash){
+            <strong>Error : </strong> @value<br />
+            }
+        </div>
         </tbody>
     </table>
 
-    <a href="@routes.Application.onShowCreateClick()">Add one</a>
+    @form(routes.Application.onShowCreateClick()) {
+        <input type="submit" value="Add one" style="float: right;">
+    }
+
 }
