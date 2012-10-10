@@ -22,14 +22,14 @@ import static me.prettyprint.hector.api.factory.HFactory.getOrCreateCluster;
  */
 public class TicketDaoTest {
 
+    // Note that the name is only for Hector to identify it and it is not linked to the real Cassandra CLUSTER name.
     public static final String CLUSTER_NAME = "Ticketex-TEST-cluster";
-    public static final String KEYSPACE_NAME = "ksp_ticket_test";
+    public static final String KEYSPACE_NAME = "ticketex_test";
     public static final String CLUSTER_URI = "127.0.0.1:9160";
 
     private static String FILE_LOCATION = "/home/miguel/documents/it/ticketex/sources/test_Ticket.script";
     public static final String CASSANDRA_CLI_PATH = "/home/miguel/documents/it/ticketex/tools/cassandra-1.1.2/bin/cassandra-cli";
 
-    // Note that the name is only for Hector to identify it and it is not linked to the real Cassandra CLUSTER name.
     private Cluster cluster;
     private Keyspace keyspace;
     private TicketDao ticketDao;

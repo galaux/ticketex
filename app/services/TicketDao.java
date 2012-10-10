@@ -76,6 +76,7 @@ public class TicketDao {
 
     public Ticket find(UUID id) {
         Ticket ticket = null;
+
         try {
             ColumnFamilyResult<UUID, String> res = template.queryColumns(id);
             if (res.hasResults()) {
@@ -88,31 +89,48 @@ public class TicketDao {
         } catch (HectorException e) {
             System.err.println(e.getMessage());
         }
+
         return ticket;
     }
 
+    /*
+    To add a range, just change the signature for:
+        public List<Ticket> all(int count, UUID start);
+
+            Then first call should be
+                all(10, null);
+            and the following calls should be
+                all(10, lastResult.peekLast());
+
+        See https://github.com/zznate/hector-examples/blob/master/src/main/java/com/riptano/cassandra/hector/example/PaginateGetRangeSlices.java
+     */
     public List<Ticket> all(int count) {
         List<Ticket> ticketList = new ArrayList<Ticket>();
-        int row_count = 100;
 
         RangeSlicesQuery<UUID, String, ByteBuffer> rangeSlicesQuery =
                 createRangeSlicesQuery(keyspace, uuidSerializer, stringSerializer, byteBufferSerializer);
         rangeSlicesQuery.setColumnFamily(COLUMN_FAMILY);
-//        rangeSlicesQuery.setColumnNames("city","state","lat","lng");
-//        rangeSlicesQuery.setKeys("512202", "512205");
-        // setRange(N start, N finish, boolean reversed, int count)
+        rangeSlicesQuery.setColumnNames(TICKET_LABEL, TICKET_DESCRIPTION, TICKET_PRICE);
         rangeSlicesQuery.setRange(null, null, false, 5);
         rangeSlicesQuery.setRowCount(count);
 
         QueryResult<OrderedRows<UUID, String, ByteBuffer>> result = rangeSlicesQuery.execute();
         OrderedRows<UUID, String, ByteBuffer> rows = result.get();
+
+//        Row<UUID, String, ByteBuffer> lastRow = rows.peekLast();
+
         for (Row<UUID, String, ByteBuffer> row : rows) {
-            Ticket t = new Ticket();
-            t.setId(row.getKey());
-            t.setLabel(getString(row.getColumnSlice().getColumnByName(TICKET_LABEL).getValue()));
-            t.setDescription(getString(row.getColumnSlice().getColumnByName(TICKET_DESCRIPTION).getValue()));
-            t.setPrice(row.getColumnSlice().getColumnByName(TICKET_PRICE).getValue().asLongBuffer().get());
-            ticketList.add(t);
+            // Check for "tombstone" rows
+            // http://wiki.apache.org/cassandra/FAQ#range_ghosts
+            // http://stackoverflow.com/questions/7341439/hector-cassandra-delete-anomaly
+            if (!row.getColumnSlice().getColumns().isEmpty()) {
+                Ticket t = new Ticket();
+                t.setId(row.getKey());
+                t.setLabel(getString(row.getColumnSlice().getColumnByName(TICKET_LABEL).getValue()));
+                t.setDescription(getString(row.getColumnSlice().getColumnByName(TICKET_DESCRIPTION).getValue()));
+                t.setPrice(row.getColumnSlice().getColumnByName(TICKET_PRICE).getValue().asLongBuffer().get());
+                ticketList.add(t);
+            }
         }
 
         return ticketList;
