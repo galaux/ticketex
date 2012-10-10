@@ -16,12 +16,12 @@ import static me.prettyprint.hector.api.factory.HFactory.getOrCreateCluster;
 
 public class Application extends Controller {
 
-        public static final String CLUSTER_NAME = "Ticketex cluster";
+    public static final String CLUSTER_NAME = "cluster_ticketex";
     public static final String KEYSPACE_NAME = "ticketex";
     public static final String CLUSTER_URI = "127.0.0.1:9160";
 
-    static private Cluster cluster = getOrCreateCluster(CLUSTER_NAME, CLUSTER_URI);
-    static private Keyspace keyspace = HFactory.createKeyspace(KEYSPACE_NAME, cluster);
+    private static Cluster cluster = getOrCreateCluster(CLUSTER_NAME, CLUSTER_URI);
+    private static Keyspace keyspace = HFactory.createKeyspace(KEYSPACE_NAME, cluster);
 
     static TicketDao ticketDao = new TicketDao(cluster, keyspace);
 
@@ -63,7 +63,7 @@ public class Application extends Controller {
         return redirect(routes.Application.list());
     }
 
-    public static Result onSearchClick(){
+    public static Result onSearchClick() {
         Form<String> filledForm = queryForm.bindFromRequest();
         if (filledForm.hasErrors()) {
             return ok("Error - Got '" + filledForm.get() + "'");

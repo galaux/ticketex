@@ -1,9 +1,9 @@
-create keyspace ticketex_test
+create keyspace ticketex
   with placement_strategy = 'NetworkTopologyStrategy'
   and strategy_options = {datacenter1 : 1}
   and durable_writes = true;
 
-use ticketex_test;
+use ticketex;
 
 create column family Ticket
   with column_type = 'Standard'
