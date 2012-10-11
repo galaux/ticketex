@@ -59,3 +59,23 @@ set Ticket[lexicaluuid(0-0-0-0-9)]['price'] = long(36);
 set Ticket[lexicaluuid(0-0-0-0-10)]['label'] = utf8('Train pour Orléans');
 set Ticket[lexicaluuid(0-0-0-0-10)]['description'] = utf8('Train intercité pour cette ville perdue qu est Orléans');
 set Ticket[lexicaluuid(0-0-0-0-10)]['price'] = long(2);
+
+set Ticket[lexicaluuid(0-0-0-0-11)]['label'] = utf8('Train pour Orléans');
+set Ticket[lexicaluuid(0-0-0-0-11)]['description'] = utf8('Train intercité pour cette ville perdue qu est Orléans');
+set Ticket[lexicaluuid(0-0-0-0-11)]['price'] = long(2);
+
+set Ticket[lexicaluuid(0-0-0-0-12)]['label'] = utf8('Aller direct pour l enfer');
+set Ticket[lexicaluuid(0-0-0-0-12)]['description'] = utf8('Ça va chauffer');
+set Ticket[lexicaluuid(0-0-0-0-12)]['price'] = long(5);
+
+set Ticket[lexicaluuid(0-0-0-0-13)]['label'] = utf8('TER qui tue');
+set Ticket[lexicaluuid(0-0-0-0-13)]['description'] = utf8('IL tue pas en fait');
+set Ticket[lexicaluuid(0-0-0-0-13)]['price'] = long(23);
+
+set Ticket[lexicaluuid(0-0-0-0-14)]['label'] = utf8('Encore un train');
+set Ticket[lexicaluuid(0-0-0-0-14)]['description'] = utf8('CHer aussi tiens');
+set Ticket[lexicaluuid(0-0-0-0-14)]['price'] = long(126);
+
+set Ticket[lexicaluuid(0-0-0-0-15)]['label'] = utf8('Blablabla');
+set Ticket[lexicaluuid(0-0-0-0-15)]['description'] = utf8('Pas cher celui la');
+set Ticket[lexicaluuid(0-0-0-0-15)]['price'] = long(3);

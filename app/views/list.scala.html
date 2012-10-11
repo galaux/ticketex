@@ -1,10 +1,10 @@
-@(tickets: List[Ticket], queryForm: Form[String])
+@(listTicketResult: ListTicketResult, queryForm: Form[String])
 
 @import helper._
 
 @main("Ticket list") {
 
-    <h1>@tickets.size() ticket(s)</h1>
+    <h1>@listTicketResult.tickets.size() ticket(s)</h1>
 
     @form(routes.Application.onSearchClick(), '_class -> "form-search") {
         @inputText(queryForm("query"), '_label -> "Search")
@@ -18,7 +18,7 @@
         </tr>
         </thead>
         <tbody>
-        @for(ticket <- tickets) {
+        @for(ticket <- listTicketResult.tickets) {
         <tr>
             <td>@ticket.id.toString</td>
             <td>@ticket.label</td>
@@ -31,14 +31,30 @@
                 }</td>
         </tr>
         }
-
-        <div class="alert-message error">
-            @for((key, value) <- flash){
-            <strong>Error : </strong> @value<br />
-            }
-        </div>
         </tbody>
     </table>
+
+    <ul class="pager">
+        @if(listTicketResult.hasPrevious) {
+            <li class="previous">
+                <a href="@routes.Application.list()">&larr; Prev.</a>
+            </li>
+        } else {
+            <li class="previous disabled">
+                <a href="#">&larr; Prev.</a>
+            </li>
+        }
+
+        @if(listTicketResult.hasNext) {
+            <li class="next">
+                <a href="@routes.Application.list()">Next &rarr;</a>
+            </li>
+        } else {
+            <li class="next disabled">
+                <a href="#">Next &rarr;</a>
+            </li>
+        }
+    </ul>
 
     @form(routes.Application.onShowCreateClick()) {
         <input type="submit" value="Add one" style="float: right;">

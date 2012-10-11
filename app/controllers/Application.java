@@ -7,9 +7,9 @@ import models.Ticket;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
+import models.ListTicketResult;
 import services.TicketDao;
 
-import java.util.List;
 import java.util.UUID;
 
 import static me.prettyprint.hector.api.factory.HFactory.getOrCreateCluster;
@@ -29,15 +29,15 @@ public class Application extends Controller {
     static Form<String> queryForm = form(String.class);
 
     public static final Result GO_HOME = redirect(routes.Application.list());
-    public static final int ALL_MAX_COUNT = 100;
+    public static final int ALL_MAX_COUNT = 10;
 
     public static Result index() {
         return GO_HOME;
     }
 
     public static Result list() {
-        List<Ticket> all = ticketDao.all(ALL_MAX_COUNT);
-        return ok(views.html.list.render(all, queryForm));
+        ListTicketResult listTicketResult = ticketDao.all(ALL_MAX_COUNT, null);
+        return ok(views.html.list.render(listTicketResult, queryForm));
     }
 
     public static Result onDoneCreate() {
@@ -51,7 +51,7 @@ public class Application extends Controller {
     public static Result onDoCreateClick() {
         Form<Ticket> filledForm = ticketForm.bindFromRequest();
         if (filledForm.hasErrors()) {
-            return badRequest(views.html.list.render(ticketDao.all(ALL_MAX_COUNT), queryForm));
+            return badRequest(views.html.list.render(ticketDao.all(ALL_MAX_COUNT, null), queryForm));
         } else {
             ticketDao.create(filledForm.get());
             return redirect(routes.Application.list());
@@ -68,8 +68,7 @@ public class Application extends Controller {
         if (filledForm.hasErrors()) {
             return ok("Error - Got '" + filledForm.get() + "'");
         } else {
-            String query = filledForm.data().get("query");
-//            return ok(views.html.list.render(Ticket.search(query), queryForm));
+//            String query = filledForm.data().get("query");
             return TODO;
         }
     }

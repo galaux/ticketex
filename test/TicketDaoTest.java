@@ -9,9 +9,7 @@ import org.junit.Test;
 import services.TicketDao;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static me.prettyprint.hector.api.factory.HFactory.createKeyspace;
 import static me.prettyprint.hector.api.factory.HFactory.getOrCreateCluster;
@@ -29,6 +27,7 @@ public class TicketDaoTest {
 
     private static String FILE_LOCATION = "/home/miguel/documents/it/ticketex/sources/test_Ticket.script";
     public static final String CASSANDRA_CLI_PATH = "/home/miguel/documents/it/ticketex/tools/cassandra-1.1.2/bin/cassandra-cli";
+    public static final int TOTAL_TICKET_COUNT = 15;
 
     private Cluster cluster;
     private Keyspace keyspace;
@@ -90,9 +89,41 @@ public class TicketDaoTest {
 
     @Test
     public void testAll() {
-        int count = 1000;
-        List<Ticket> tickets = ticketDao.all(count);
-        Assert.assertEquals(10, tickets.size());
+
+        Map<String, Boolean> map = new HashMap<String, Boolean>();
+
+        int count = 10;
+
+        UUID lastTicketId = null;
+
+        List<Ticket> tickets;
+        int i = 0;
+
+        do {
+            tickets = ticketDao.all(count, lastTicketId);
+
+            // Gather all retrieved UUIDs in a hashmap and check we have never had them previously
+            for (Ticket ticket : tickets) {
+                String idAsStr = ticket.getId().toString();
+                if (map.get(idAsStr) != null && map.get(idAsStr)) {
+                    // If "all" returned a row we have already had then it's a failure !
+                    Assert.fail();
+                } else {
+                    map.put(idAsStr, true);
+                }
+            }
+
+            if (!tickets.isEmpty()) {
+                lastTicketId = tickets.get(tickets.size() - 1).getId();
+            }
+
+        } while (tickets.size() == count && (i++ < 30));
+
+        if (count == 30) {
+            throw new RuntimeException("Out of loop because reached max loop count.");
+        }
+
+        Assert.assertEquals(TOTAL_TICKET_COUNT, map.size());
     }
 
     @Test

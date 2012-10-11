@@ -17,6 +17,7 @@ import me.prettyprint.hector.api.mutation.MutationResult;
 import me.prettyprint.hector.api.mutation.Mutator;
 import me.prettyprint.hector.api.query.QueryResult;
 import me.prettyprint.hector.api.query.RangeSlicesQuery;
+import models.ListTicketResult;
 import models.Ticket;
 
 import java.nio.ByteBuffer;
@@ -104,7 +105,7 @@ public class TicketDao {
 
         See https://github.com/zznate/hector-examples/blob/master/src/main/java/com/riptano/cassandra/hector/example/PaginateGetRangeSlices.java
      */
-    public List<Ticket> all(int count) {
+    public ListTicketResult all(int count, UUID start) {
         List<Ticket> ticketList = new ArrayList<Ticket>();
 
         RangeSlicesQuery<UUID, String, ByteBuffer> rangeSlicesQuery =
@@ -112,13 +113,14 @@ public class TicketDao {
         rangeSlicesQuery.setColumnFamily(COLUMN_FAMILY);
         rangeSlicesQuery.setColumnNames(TICKET_LABEL, TICKET_DESCRIPTION, TICKET_PRICE);
         rangeSlicesQuery.setRange(null, null, false, 5);
-        rangeSlicesQuery.setRowCount(count);
+        rangeSlicesQuery.setKeys(start, null);
+        // Let's ask for one more ticket and adjust the result afterwards
+        rangeSlicesQuery.setRowCount(count + 1);
 
         QueryResult<OrderedRows<UUID, String, ByteBuffer>> result = rangeSlicesQuery.execute();
         OrderedRows<UUID, String, ByteBuffer> rows = result.get();
 
-//        Row<UUID, String, ByteBuffer> lastRow = rows.peekLast();
-
+        // FIXME: we ask for "count" elements but if we encounter a tombstone then we will send "count - 1" elements
         for (Row<UUID, String, ByteBuffer> row : rows) {
             // Check for "tombstone" rows
             // http://wiki.apache.org/cassandra/FAQ#range_ghosts
@@ -133,7 +135,22 @@ public class TicketDao {
             }
         }
 
-        return ticketList;
+        // Adjust result: if user specified a "start", it means that this "start" is the last element
+        // of the previous page, so it should not appear on *this* page
+        if (start != null) {
+            ticketList.remove(0);
+        } else {
+            // And if user did not specify a "start" then let's give him only "count" elements
+            // and thus get rid of the last one
+            ticketList.remove(ticketList.size() - 1);
+        }
+
+        boolean hasPrevious = (start != null);
+        // Not really accurate but anyway
+        boolean hasNext = (ticketList.size() < count);
+        ListTicketResult listTicketResult = new ListTicketResult(ticketList, hasPrevious, hasNext);
+
+        return listTicketResult;
     }
 
     public void delete(UUID id) {
