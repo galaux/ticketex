@@ -1,179 +1,35 @@
 package services;
 
-
-import me.prettyprint.cassandra.serializers.ByteBufferSerializer;
-import me.prettyprint.cassandra.serializers.StringSerializer;
-import me.prettyprint.cassandra.serializers.UUIDSerializer;
-import me.prettyprint.cassandra.service.template.ColumnFamilyResult;
-import me.prettyprint.cassandra.service.template.ColumnFamilyTemplate;
-import me.prettyprint.cassandra.service.template.ColumnFamilyUpdater;
-import me.prettyprint.cassandra.service.template.ThriftColumnFamilyTemplate;
-import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.OrderedRows;
-import me.prettyprint.hector.api.beans.Row;
-import me.prettyprint.hector.api.exceptions.HectorException;
-import me.prettyprint.hector.api.mutation.MutationResult;
-import me.prettyprint.hector.api.mutation.Mutator;
-import me.prettyprint.hector.api.query.QueryResult;
-import me.prettyprint.hector.api.query.RangeSlicesQuery;
-import models.ListTicketResult;
 import models.Ticket;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static me.prettyprint.hector.api.factory.HFactory.*;
-
 /**
  * @author Guillaume ALAUX <guillaume at alaux dot net>
- *         Date: 10/3/12
+ *         Date: 10/12/12
  */
-public class TicketDao {
+public interface TicketDao {
 
-//    // Note that the name is only for Hector to identify it and it is not linked to the real Cassandra cluster name.
-//    private static final Cluster cluster = getOrCreateCluster(CLUSTER_NAME, CLUSTER_URI);
-//    public static final Keyspace keyspace = createKeyspace(KEYSPACE_NAME, cluster);
+    public static final String CLUSTER_NAME = "cluster_ticketex";
+    public static final String KEYSPACE_NAME = "ticketex";
 
-    private Cluster cluster;
-    private Keyspace keyspace;
-
-    public static final String COLUMN_FAMILY = "Ticket";
+    public static final String CF_TICKET_NAME = "Ticket";
     public static final String TICKET_LABEL = "label";
     public static final String TICKET_DESCRIPTION = "description";
     public static final String TICKET_PRICE = "price";
 
-    static StringSerializer stringSerializer = StringSerializer.get();
-    static UUIDSerializer uuidSerializer = UUIDSerializer.get();
-    static ByteBufferSerializer byteBufferSerializer = ByteBufferSerializer.get();
+    public static final UUID UUID_NULL = UUID.fromString("0-0-0-0-0");
 
-    private ColumnFamilyTemplate<UUID, String> template;
-    private Mutator<UUID> mutator;
+    public Ticket find(UUID id);
 
-    public TicketDao(Cluster cluster, Keyspace keyspace) {
-        this.cluster = cluster;
-        this.keyspace = keyspace;
-        this.template =
-                new ThriftColumnFamilyTemplate<UUID, String>(keyspace,
-                        COLUMN_FAMILY,
-                        uuidSerializer,
-                        stringSerializer);
+    public void create(Ticket ticket);
 
-        mutator = createMutator(keyspace, uuidSerializer);
-    }
+    public List<Ticket> all();
 
-    public void create(Ticket ticket) {
-        UUID id = UUID.randomUUID();
-        mutator.addInsertion(id, COLUMN_FAMILY, createStringColumn(TICKET_LABEL, ticket.getLabel()));
-        mutator.addInsertion(id, COLUMN_FAMILY, createStringColumn(TICKET_DESCRIPTION, ticket.getDescription()));
-        mutator.addInsertion(id, COLUMN_FAMILY, createColumn(TICKET_PRICE, ticket.getPrice()));
+//    public List<Ticket> getPage(int pageSize, boolean reversed, UUID id);
 
-        ticket.setId(id);
+    public void delete(UUID id);
 
-        MutationResult mr = mutator.execute();
-    }
-
-    public Ticket find(UUID id) {
-        Ticket ticket = null;
-
-        try {
-            ColumnFamilyResult<UUID, String> res = template.queryColumns(id);
-            if (res.hasResults()) {
-                ticket = new Ticket();
-                ticket.setId(res.getKey());
-                ticket.setLabel(res.getString(TICKET_LABEL));
-                ticket.setDescription(res.getString(TICKET_DESCRIPTION));
-                ticket.setPrice(res.getLong(TICKET_PRICE));
-            }
-        } catch (HectorException e) {
-            System.err.println(e.getMessage());
-        }
-
-        return ticket;
-    }
-
-    /*
-    To add a range, just change the signature for:
-        public List<Ticket> all(int count, UUID start);
-
-            Then first call should be
-                all(10, null);
-            and the following calls should be
-                all(10, lastResult.peekLast());
-
-        See https://github.com/zznate/hector-examples/blob/master/src/main/java/com/riptano/cassandra/hector/example/PaginateGetRangeSlices.java
-     */
-    public ListTicketResult all(int count, UUID start) {
-        List<Ticket> ticketList = new ArrayList<Ticket>();
-
-        RangeSlicesQuery<UUID, String, ByteBuffer> rangeSlicesQuery =
-                createRangeSlicesQuery(keyspace, uuidSerializer, stringSerializer, byteBufferSerializer);
-        rangeSlicesQuery.setColumnFamily(COLUMN_FAMILY);
-        rangeSlicesQuery.setColumnNames(TICKET_LABEL, TICKET_DESCRIPTION, TICKET_PRICE);
-        rangeSlicesQuery.setRange(null, null, false, 5);
-        rangeSlicesQuery.setKeys(start, null);
-        // Let's ask for one more ticket and adjust the result afterwards
-        rangeSlicesQuery.setRowCount(count + 1);
-
-        QueryResult<OrderedRows<UUID, String, ByteBuffer>> result = rangeSlicesQuery.execute();
-        OrderedRows<UUID, String, ByteBuffer> rows = result.get();
-
-        // FIXME: we ask for "count" elements but if we encounter a tombstone then we will send "count - 1" elements
-        for (Row<UUID, String, ByteBuffer> row : rows) {
-            // Check for "tombstone" rows
-            // http://wiki.apache.org/cassandra/FAQ#range_ghosts
-            // http://stackoverflow.com/questions/7341439/hector-cassandra-delete-anomaly
-            if (!row.getColumnSlice().getColumns().isEmpty()) {
-                Ticket t = new Ticket();
-                t.setId(row.getKey());
-                t.setLabel(getString(row.getColumnSlice().getColumnByName(TICKET_LABEL).getValue()));
-                t.setDescription(getString(row.getColumnSlice().getColumnByName(TICKET_DESCRIPTION).getValue()));
-                t.setPrice(row.getColumnSlice().getColumnByName(TICKET_PRICE).getValue().asLongBuffer().get());
-                ticketList.add(t);
-            }
-        }
-
-        // Adjust result: if user specified a "start", it means that this "start" is the last element
-        // of the previous page, so it should not appear on *this* page
-        if (start != null) {
-            ticketList.remove(0);
-        } else {
-            // And if user did not specify a "start" then let's give him only "count" elements
-            // and thus get rid of the last one
-            ticketList.remove(ticketList.size() - 1);
-        }
-
-        boolean hasPrevious = (start != null);
-        // Not really accurate but anyway
-        boolean hasNext = (ticketList.size() < count);
-        ListTicketResult listTicketResult = new ListTicketResult(ticketList, hasPrevious, hasNext);
-
-        return listTicketResult;
-    }
-
-    public void delete(UUID id) {
-        mutator.addDeletion(id, COLUMN_FAMILY, TICKET_LABEL, stringSerializer);
-        mutator.addDeletion(id, COLUMN_FAMILY, TICKET_DESCRIPTION, stringSerializer);
-        mutator.addDeletion(id, COLUMN_FAMILY, TICKET_PRICE, stringSerializer);
-        MutationResult mr = mutator.execute();
-        // TODO Necessary?
-//        mutator.discardPendingMutations();
-    }
-
-    public void update(Ticket ticket) {
-        ColumnFamilyUpdater<UUID, String> updater = template.createUpdater(ticket.getId());
-        updater.setString(TICKET_LABEL, ticket.getLabel());
-        updater.setString(TICKET_LABEL, ticket.getDescription());
-        updater.setLong(TICKET_PRICE, ticket.getPrice());
-        template.update(updater);
-    }
-
-    // *******************************************************
-    public static String getString(ByteBuffer byteBuffer) {
-        byte[] byteArr = new byte[byteBuffer.remaining()];
-        byteBuffer.get(byteArr);
-        return new String(byteArr);
-    }
+    public void update(Ticket ticket);
 }

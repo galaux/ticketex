@@ -1,43 +1,39 @@
 package controllers;
 
-import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.factory.HFactory;
+import com.google.common.base.Strings;
 import models.Ticket;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
-import models.ListTicketResult;
+import services.HectorTicketDao;
 import services.TicketDao;
 
+import java.util.List;
 import java.util.UUID;
-
-import static me.prettyprint.hector.api.factory.HFactory.getOrCreateCluster;
 
 public class Application extends Controller {
 
     public static final String CLUSTER_NAME = "cluster_ticketex";
     public static final String KEYSPACE_NAME = "ticketex";
-    public static final String CLUSTER_URI = "127.0.0.1:9160";
+    public static final String CLUSTER_HOST = "127.0.0.1";
+    public static final int CLUSTER_PORT = 9160;
 
-    private static Cluster cluster = getOrCreateCluster(CLUSTER_NAME, CLUSTER_URI);
-    private static Keyspace keyspace = HFactory.createKeyspace(KEYSPACE_NAME, cluster);
-
-    static TicketDao ticketDao = new TicketDao(cluster, keyspace);
+    static TicketDao ticketDao = new HectorTicketDao(CLUSTER_NAME, CLUSTER_HOST, CLUSTER_PORT, KEYSPACE_NAME);
+//    static TicketDao ticketDao = new AstyanaxTicketDao(CLUSTER_NAME, CLUSTER_HOST, CLUSTER_PORT, KEYSPACE_NAME);
 
     static Form<Ticket> ticketForm = form(Ticket.class);
     static Form<String> queryForm = form(String.class);
 
+    public static final int PAGE_SIZE = 3;
     public static final Result GO_HOME = redirect(routes.Application.list());
-    public static final int ALL_MAX_COUNT = 10;
 
     public static Result index() {
         return GO_HOME;
     }
 
     public static Result list() {
-        ListTicketResult listTicketResult = ticketDao.all(ALL_MAX_COUNT, null);
-        return ok(views.html.list.render(listTicketResult, queryForm));
+        List<Ticket> tickets = ticketDao.all();
+        return ok(views.html.list.render(tickets, queryForm));
     }
 
     public static Result onDoneCreate() {
@@ -51,7 +47,7 @@ public class Application extends Controller {
     public static Result onDoCreateClick() {
         Form<Ticket> filledForm = ticketForm.bindFromRequest();
         if (filledForm.hasErrors()) {
-            return badRequest(views.html.list.render(ticketDao.all(ALL_MAX_COUNT, null), queryForm));
+            return badRequest(views.html.list.render(ticketDao.all(), queryForm));
         } else {
             ticketDao.create(filledForm.get());
             return redirect(routes.Application.list());

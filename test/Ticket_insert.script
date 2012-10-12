@@ -79,3 +79,4 @@ set Ticket[lexicaluuid(0-0-0-0-14)]['price'] = long(126);
 set Ticket[lexicaluuid(0-0-0-0-15)]['label'] = utf8('Blablabla');
 set Ticket[lexicaluuid(0-0-0-0-15)]['description'] = utf8('Pas cher celui la');
 set Ticket[lexicaluuid(0-0-0-0-15)]['price'] = long(3);
+

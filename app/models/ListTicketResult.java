@@ -1,5 +1,7 @@
 package models;
 
+import services.HectorTicketDao;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -11,13 +13,7 @@ public class ListTicketResult {
 
     public List<Ticket> tickets;
 
-    public UUID prevId;
+    public UUID prevPageFirstId = HectorTicketDao.UUID_NULL;
 
-    public UUID nextId;
-
-    public ListTicketResult(List<Ticket> tickets, UUID prevId, UUID nextId) {
-        this.tickets = tickets;
-        this.prevId = prevId;
-        this.nextId = nextId;
-    }
+    public UUID nextPageFirstId = HectorTicketDao.UUID_NULL;
 }

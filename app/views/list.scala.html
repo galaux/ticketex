@@ -1,10 +1,10 @@
-@(listTicketResult: ListTicketResult, queryForm: Form[String])
+@(tickets: List[Ticket], queryForm: Form[String])
 
 @import helper._
 
 @main("Ticket list") {
 
-    <h1>@listTicketResult.tickets.size() ticket(s)</h1>
+    <h1>@tickets.size() ticket(s)</h1>
 
     @form(routes.Application.onSearchClick(), '_class -> "form-search") {
         @inputText(queryForm("query"), '_label -> "Search")
@@ -14,13 +14,13 @@
     <table class="table table-striped table-hover">
         <thead>
         <tr>
-            <th>UUID</th> <th>Label</th> <th>Date</th> <th>Description</th> <th>Price</th> <th></th>
+            <th>Label</th> <th>Date</th> <th>Description</th> <th>Price</th> <th></th>
         </tr>
         </thead>
         <tbody>
-        @for(ticket <- listTicketResult.tickets) {
+        @for(ticket <- tickets) {
         <tr>
-            <td>@ticket.id.toString</td>
+            <!--<td>@ticket.id.toString</td>-->
             <td>@ticket.label</td>
             <td>@ticket.start<br />
                 -> @ticket.end</td>
@@ -35,25 +35,7 @@
     </table>
 
     <ul class="pager">
-        @if(listTicketResult.hasPrevious) {
-            <li class="previous">
-                <a href="@routes.Application.list()">&larr; Prev.</a>
-            </li>
-        } else {
-            <li class="previous disabled">
-                <a href="#">&larr; Prev.</a>
-            </li>
-        }
 
-        @if(listTicketResult.hasNext) {
-            <li class="next">
-                <a href="@routes.Application.list()">Next &rarr;</a>
-            </li>
-        } else {
-            <li class="next disabled">
-                <a href="#">Next &rarr;</a>
-            </li>
-        }
     </ul>
 
     @form(routes.Application.onShowCreateClick()) {
